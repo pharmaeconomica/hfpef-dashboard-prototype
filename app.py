@@ -20,6 +20,8 @@ from page_layout_v11 import (
 
 st.set_page_config(page_title="HFpEF Dashboard Prototype", layout="wide")
 
+st.warning("LIVE BUILD CHECK: Version 11 two-page layout")
+
 
 # -----------------------------
 # Required column definitions
