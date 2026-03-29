@@ -1,22 +1,5 @@
 import streamlit as st
 import pandas as pd
-from transition_model_v10 import validate_transition_table, run_transition_model_v10
-from transition_time_model_v11 import validate_time_risk_table, run_transition_time_model_v11
-from ui_redesign_v11 import (
-    prepare_client_view,
-    render_top_kpis,
-    render_story_summary,
-    render_pathway_cards,
-    render_node_detail,
-    render_hidden_technical_section,
-)
-from page_layout_v11 import (
-    render_executive_summary,
-    render_detailed_analysis,
-)
-
-
-
 
 st.set_page_config(page_title="HFpEF Dashboard Prototype", layout="wide")
 
@@ -69,8 +52,6 @@ def load_parameter_controls():
 @st.cache_data
 def load_segment_parameters():
     return pd.read_csv("data/segment_parameters.csv")
-transitions_df = pd.read_csv("node_transitions.csv")
-time_risk_df = pd.read_csv("time_risk_parameters.csv")
 
 
 # -----------------------------
@@ -476,13 +457,6 @@ cost_factor = int(control_lookup["cost_factor"])
 
 show_vica = st.sidebar.toggle("Show VicaEmpa scenario", value=True)
 
-page_view = st.sidebar.radio(
-    "View",
-    ["Executive Summary", "Detailed Analysis"],
-    index=0
-)
-
-
 currency = market_globals["currency"]
 market_note = market_globals["market_note"]
 
@@ -496,77 +470,6 @@ base_df, base_cost, base_lost, base_remaining, base_segment_summary, base_detail
 vica_df, vica_cost, vica_lost, vica_remaining, vica_segment_summary, vica_detailed_segments = run_market_scenario(
     market_nodes, market_segments, population, delay_factor, leakage_factor, cost_factor, use_vica=True
 )
-
-
-# -----------------------------
-# Version 10 parallel run
-# -----------------------------
-v10_current_results = run_transition_model_v10(
-    node_params_df=node_params,
-    segment_params_df=segment_params,
-    transitions_df=transitions_df,
-    total_population=population,
-    selected_market=market,
-    scenario_name="Current"
-)
-
-v10_vica_results = run_transition_model_v10(
-    node_params_df=node_params,
-    segment_params_df=segment_params,
-    transitions_df=transitions_df,
-    total_population=population,
-    selected_market=market,
-    scenario_name="VicaEmpa"
-)
-
-v10_active_results = v10_vica_results if show_vica else v10_current_results
-v10_node_results_df = v10_active_results["node_results"]
-v10_transition_results_df = v10_active_results["transition_results"]
-v10_aggregate_node_results_df = v10_active_results["aggregate_node_results"]
-v10_aggregate_transition_results_df = v10_active_results["aggregate_transition_results"]
-v10_segment_summary_df = v10_active_results["segment_summary"]
-
-# -----------------------------
-# Version 11 parallel run
-# -----------------------------
-time_risk_validation = validate_time_risk_table(
-    time_risk_df=time_risk_df,
-    selected_market=market
-)
-
-v11_current_results = run_transition_time_model_v11(
-    node_params_df=node_params,
-    segment_params_df=segment_params,
-    transitions_df=transitions_df,
-    time_risk_df=time_risk_df,
-    total_population=population,
-    selected_market=market,
-    scenario_name="Current"
-)
-
-v11_vica_results = run_transition_time_model_v11(
-    node_params_df=node_params,
-    segment_params_df=segment_params,
-    transitions_df=transitions_df,
-    time_risk_df=time_risk_df,
-    total_population=population,
-    selected_market=market,
-    scenario_name="VicaEmpa"
-)
-
-v11_active_results = v11_vica_results if show_vica else v11_current_results
-v11_node_results_df = v11_active_results["node_results"]
-v11_transition_results_df = v11_active_results["transition_results"]
-v11_aggregate_node_results_df = v11_active_results["aggregate_node_results"]
-v11_aggregate_transition_results_df = v11_active_results["aggregate_transition_results"]
-v11_segment_summary_df = v11_active_results["segment_summary"]
-
-# -----------------------------
-# Client-ready UI view
-# -----------------------------
-client_view_df = prepare_client_view(v11_aggregate_node_results_df)
-
-
 
 active_df = vica_df if show_vica else base_df
 active_cost = vica_cost if show_vica else base_cost
@@ -605,82 +508,12 @@ value_df = delta_df[[
 # -----------------------------
 # Top metrics
 # -----------------------------
-with st.expander("Legacy prototype sections", expanded=False):
-    col1, col2, col3, col4 = st.columns(4)
-
-
-
-# =============================
-# PAGE-BASED CLIENT UI
-# =============================
-if page_view == "Executive Summary":
-    render_executive_summary(
-        client_view_df=client_view_df,
-        v11_transition_results_df=v11_transition_results_df,
-        currency=currency,
-        show_vica=show_vica,
-    )
-else:
-    render_detailed_analysis(
-        v11_aggregate_node_results_df=v11_aggregate_node_results_df,
-        v11_transition_results_df=v11_transition_results_df,
-        v11_segment_summary_df=v11_segment_summary_df,
-        client_view_df=client_view_df,
-        currency=currency,
-    )
-
-st.markdown("---")
-st.stop()
-
-
+col1, col2, col3, col4 = st.columns(4)
 col1.metric("Current View Cost", f"{currency}{active_cost:,.0f}")
 col2.metric("Patients Remaining", f"{active_remaining:,}")
 col3.metric("Potential Savings", f"{currency}{savings:,.0f}")
 col4.metric("Avoided Patient Loss", f"{avoided_loss:,}")
 
-
-
-
-
-st.subheader("Version 11 Preview: Time-Dependent Risk")
-
-v11_n9_df = v11_aggregate_node_results_df[v11_aggregate_node_results_df["node_id"] == "N9"].copy()
-
-if not v11_n9_df.empty:
-    st.write("Hospitalization-sensitive node (N9)")
-    st.dataframe(v11_n9_df, use_container_width=True)
-
-st.write("Version 11 aggregate node results")
-st.dataframe(v11_aggregate_node_results_df, use_container_width=True)
-
-st.write("Version 11 segment summary")
-st.dataframe(v11_segment_summary_df, use_container_width=True)
-
-st.markdown("---")
-with st.expander("Hidden preview section", expanded=False):
-    st.subheader("Version 10 Preview: Transition-Based Flow")
-
-st.write("Aggregate node results")
-st.dataframe(v10_aggregate_node_results_df, use_container_width=True)
-
-st.write("Aggregate transition flows")
-st.dataframe(v10_aggregate_transition_results_df, use_container_width=True)
-
-transition_matrix = v10_aggregate_transition_results_df.pivot_table(
-    index="from_node",
-    columns="to_node",
-    values="probability",
-    aggfunc="mean",
-    fill_value=0
-)
-
-st.write("Transition matrix")
-st.dataframe(transition_matrix, use_container_width=True)
-
-st.write("Version 10 segment summary")
-st.dataframe(v10_segment_summary_df, use_container_width=True)
-
-st.markdown("---")
 st.markdown("---")
 
 # -----------------------------

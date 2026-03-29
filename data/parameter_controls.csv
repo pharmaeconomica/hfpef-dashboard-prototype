@@ -1,0 +1,9 @@
+parameter_name,market,label,control_type,default_value,min_value,max_value,step_value,editable,unit,source_type,evidence_strength,parameter_note
+population_size,US,Population size,slider,1000000,100000,5000000,100000,yes,patients,epidemiology,strong,Total HFpEF population entering pathway.
+delay_factor,US,Delay intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node delays.
+leakage_factor,US,Leakage intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node leakage rates.
+cost_factor,US,Cost intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node costs.
+population_size,Germany,Population size,slider,1000000,100000,5000000,100000,yes,patients,epidemiology,strong,Total HFpEF population entering pathway.
+delay_factor,Germany,Delay intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node delays.
+leakage_factor,Germany,Leakage intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node leakage rates.
+cost_factor,Germany,Cost intensity (%),slider,100,50,150,5,yes,percent,scenario,prototype,Global multiplier applied to node costs.

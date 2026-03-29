@@ -1,0 +1,3 @@
+market,target_node,base_risk_per_patient,delay_threshold_days,risk_increase_per_30d,cost_increase_per_30d
+US,N9,0.180,30,0.080,0.050
+Germany,N9,0.160,30,0.070,0.040

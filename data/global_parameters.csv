@@ -1,0 +1,3 @@
+market,default_population,currency,market_note
+US,1000000,$,"US base case prototype. Designed to represent a high-cost, higher-volume pathway with substantial downstream event burden."
+Germany,1000000,€,"Germany adaptation prototype. Designed to show how the same interaction layer can run on a different country parameter set."

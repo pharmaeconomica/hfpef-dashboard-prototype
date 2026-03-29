@@ -1,0 +1,9 @@
+market,segment_id,segment_name,population_share,delay_multiplier,leakage_multiplier,cost_multiplier,source_type,evidence_strength,parameter_note
+US,S1,Lower Friction Pathway,0.30,0.85,0.85,0.90,assumption,prototype,"Patients with relatively smoother progression through the pathway."
+US,S2,Delayed Diagnosis Pathway,0.25,1.25,1.10,1.00,literature_proxy,weak,"Patients with prolonged pre-diagnosis and referral delays."
+US,S3,High Inertia Pathway,0.30,1.20,1.30,1.10,literature_proxy,weak,"Patients more likely to remain untreated or undertreated."
+US,S4,Post-Hospital High Risk,0.15,1.10,1.20,1.35,claims_proxy,moderate,"Patients at higher downstream event and transition burden."
+Germany,S1,Lower Friction Pathway,0.28,0.90,0.85,0.92,assumption,prototype,"Patients with relatively smoother progression through the pathway."
+Germany,S2,Delayed Diagnosis Pathway,0.27,1.20,1.10,1.00,literature_proxy,weak,"Patients with prolonged diagnostic and referral delays."
+Germany,S3,High Inertia Pathway,0.28,1.15,1.25,1.08,literature_proxy,weak,"Patients more likely to remain untreated or undertreated."
+Germany,S4,Post-Hospital High Risk,0.17,1.10,1.18,1.30,claims_proxy,moderate,"Patients at higher downstream event and transition burden."
