@@ -20,7 +20,6 @@ from page_layout_v11 import (
 
 st.set_page_config(page_title="HFpEF Dashboard Prototype", layout="wide")
 
-st.warning("LIVE BUILD CHECK: Version 11 two-page layout")
 
 
 # -----------------------------
@@ -621,6 +620,8 @@ if page_view == "Executive Summary":
         v11_transition_results_df=v11_transition_results_df,
         currency=currency,
         show_vica=show_vica,
+        v11_current_results=v11_current_results,
+        v11_vica_results=v11_vica_results,
     )
 else:
     render_detailed_analysis(
@@ -629,6 +630,9 @@ else:
         v11_segment_summary_df=v11_segment_summary_df,
         client_view_df=client_view_df,
         currency=currency,
+        show_vica=show_vica,
+        v11_current_results=v11_current_results,
+        v11_vica_results=v11_vica_results,
     )
 
 st.markdown("---")
@@ -644,45 +648,9 @@ col4.metric("Avoided Patient Loss", f"{avoided_loss:,}")
 
 
 
-st.subheader("Version 11 Preview: Time-Dependent Risk")
 
-v11_n9_df = v11_aggregate_node_results_df[v11_aggregate_node_results_df["node_id"] == "N9"].copy()
-
-if not v11_n9_df.empty:
-    st.write("Hospitalization-sensitive node (N9)")
-    st.dataframe(v11_n9_df, use_container_width=True)
-
-st.write("Version 11 aggregate node results")
-st.dataframe(v11_aggregate_node_results_df, use_container_width=True)
-
-st.write("Version 11 segment summary")
-st.dataframe(v11_segment_summary_df, use_container_width=True)
-
-st.markdown("---")
-with st.expander("Hidden preview section", expanded=False):
-    st.subheader("Version 10 Preview: Transition-Based Flow")
-
-st.write("Aggregate node results")
-st.dataframe(v10_aggregate_node_results_df, use_container_width=True)
-
-st.write("Aggregate transition flows")
-st.dataframe(v10_aggregate_transition_results_df, use_container_width=True)
-
-transition_matrix = v10_aggregate_transition_results_df.pivot_table(
-    index="from_node",
-    columns="to_node",
-    values="probability",
-    aggfunc="mean",
-    fill_value=0
-)
-
-st.write("Transition matrix")
-st.dataframe(transition_matrix, use_container_width=True)
-
-st.write("Version 10 segment summary")
-st.dataframe(v10_segment_summary_df, use_container_width=True)
-
-st.markdown("---")
+with st.expander("Removed empty block"):
+    st.write("Removed during cleanup")
 st.markdown("---")
 
 # -----------------------------

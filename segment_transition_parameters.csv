@@ -1,0 +1,7 @@
+from_segment,to_segment,annual_transition_rate,clinical_rationale,enabled
+Delayed Diagnosis Pathway,High Inertia Pathway,0.18,Patients diagnosed late may remain undertreated after diagnosis,1
+High Inertia Pathway,Lower Friction Pathway,0.12,Improved treatment initiation and follow-up can reduce inertia,1
+Post-Hospital High Risk,Lower Friction Pathway,0.10,Stabilized patients may move into a lower-friction follow-up state,1
+Post-Hospital High Risk,High Inertia Pathway,0.08,Some post-discharge patients remain undertreated and drift into inertia,1
+Lower Friction Pathway,High Inertia Pathway,0.03,Some initially stable patients may later experience treatment delay,1
+Delayed Diagnosis Pathway,Lower Friction Pathway,0.05,Some patients may be diagnosed and managed efficiently after screening improvement,1
