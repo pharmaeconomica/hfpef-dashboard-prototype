@@ -18,6 +18,25 @@ from page_layout_v11 import (
 
 
 
+
+# --- Logo ---
+import base64
+
+def get_base64_image(path):
+    with open(path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+logo_base64 = get_base64_image("assets/logo.png")
+
+st.markdown(
+    f"""
+    <div style="display: flex; justify-content: center; margin-top: 10px; margin-bottom: 10px;">
+        <img src="data:image/png;base64,{logo_base64}" width="300">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 st.set_page_config(page_title="HFpEF Dashboard Prototype", layout="wide")
 
 
@@ -214,13 +233,13 @@ def get_market_segments(segment_df, market):
 
 
 def get_control_value(control_row):
-    control_type = control_row["control_type"]
-    label = control_row["label"]
+    label = control_row.get("control_label", control_row.get("parameter_name", "Parameter"))
     default_value = control_row["default_value"]
+    editable = bool(control_row["editable"])
+    control_type = control_row["control_type"]
     min_value = control_row["min_value"]
     max_value = control_row["max_value"]
     step_value = control_row["step_value"]
-    editable = str(control_row["editable"]).lower() == "yes"
 
     if not editable:
         return default_value
@@ -237,9 +256,6 @@ def get_control_value(control_row):
     return default_value
 
 
-# -----------------------------
-# Model logic
-# -----------------------------
 def run_segment_scenario(nodes_df, segment_row, population, delay_factor, leakage_factor, cost_factor, use_vica=False):
     results = []
     segment_population = int(population * float(segment_row["population_share"]))
@@ -410,7 +426,22 @@ default_segment_params = load_segment_parameters()
 # -----------------------------
 # Sidebar: data source selection
 # -----------------------------
-st.sidebar.header("Data Source")
+st.sidebar.header("Model Configuration")
+
+# --- Mode selection ---
+mode = st.sidebar.radio(
+    "Mode",
+    ["Demo Mode", "Advanced Mode"],
+    index=0
+)
+
+if mode == "Demo Mode":
+    st.sidebar.info(
+        "Demo Mode uses default assumptions. Switch to Advanced Mode to customize inputs."
+    )
+
+st.sidebar.markdown("---")
+("Data Source")
 use_uploaded_files = st.sidebar.toggle("Use uploaded country template", value=False)
 
 node_params = default_node_params
@@ -423,10 +454,22 @@ upload_errors = []
 if use_uploaded_files:
     st.sidebar.markdown("### Upload template files")
 
-    uploaded_node_file = st.sidebar.file_uploader("Upload node_parameters.csv", type=["csv"])
-    uploaded_global_file = st.sidebar.file_uploader("Upload global_parameters.csv", type=["csv"])
-    uploaded_control_file = st.sidebar.file_uploader("Upload parameter_controls.csv (optional)", type=["csv"])
-    uploaded_segment_file = st.sidebar.file_uploader("Upload segment_parameters.csv (optional)", type=["csv"])
+    
+    
+    
+    
+
+    # --- File upload (Advanced Mode only) ---
+    if mode == "Advanced Mode":
+        uploaded_node_file = st.sidebar.file_uploader("Upload pathway structure (optional)", type=["csv"])
+        uploaded_global_file = st.sidebar.file_uploader("Upload population & system context (optional)", type=["csv"])
+        uploaded_control_file = st.sidebar.file_uploader("Upload scenario assumptions (optional)", type=["csv"])
+        uploaded_segment_file = st.sidebar.file_uploader("Upload patient segmentation (optional)", type=["csv"])
+    else:
+        uploaded_node_file = None
+        uploaded_global_file = None
+        uploaded_control_file = None
+        uploaded_segment_file = None
 
     if uploaded_node_file is not None and uploaded_global_file is not None:
         uploaded_node_df = pd.read_csv(uploaded_node_file)

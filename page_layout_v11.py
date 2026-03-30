@@ -49,7 +49,7 @@ def render_executive_summary(
     v11_current_results,
     v11_vica_results,
 ):
-    st.title("HFpEF Care Pathway Dashboard")
+    st.title("Executive Summary")
     st.caption(
         "A simple view of where patients are delayed, where the system loses value, "
         "and how VicaEmpa changes the pathway."
