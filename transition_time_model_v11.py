@@ -69,7 +69,10 @@ def run_transition_time_model_v11(
     time_risk_df,
     total_population,
     selected_market,
-    scenario_name="Current"
+    scenario_name="Current",
+    delay_factor=100,
+    leakage_factor=100,
+    cost_factor=100
 ):
     node_id_col = _find_column(node_params_df, ["node_id", "node", "node_name"])
     market_col_nodes = _find_column(node_params_df, ["market"], required=False)
@@ -208,9 +211,9 @@ def run_transition_time_model_v11(
                 leakage_multiplier = 1.0
                 cost_multiplier = 1.0
 
-            final_delay = base_delay * seg_delay_multiplier * delay_multiplier
-            final_leakage = base_leakage * seg_leakage_multiplier * leakage_multiplier
-            final_cost = base_cost * seg_cost_multiplier * cost_multiplier
+            final_delay = base_delay * (delay_factor / 100.0) * seg_delay_multiplier * delay_multiplier
+            final_leakage = base_leakage * (leakage_factor / 100.0) * seg_leakage_multiplier * leakage_multiplier
+            final_cost = base_cost * (cost_factor / 100.0) * seg_cost_multiplier * cost_multiplier
 
             final_leakage = max(0.0, min(1.0, final_leakage))
 
