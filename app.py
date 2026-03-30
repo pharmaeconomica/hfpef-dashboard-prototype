@@ -388,8 +388,16 @@ def get_node_style(severity, node_id):
 # -----------------------------
 # App header
 # -----------------------------
-st.title("HFpEF Care Pathway Simulation Dashboard")
-st.caption("Interactive HFpEF care pathway simulation")
+st.markdown("""
+<div style="padding-top: 0.25rem; padding-bottom: 0.75rem;">
+    <h1 style="margin-bottom: 0.2rem; font-size: 2.2rem;">
+        HFpEF Care Pathway Simulation Dashboard
+    </h1>
+    <p style="margin-top: 0; color: #6b7280; font-size: 1.05rem;">
+        Interactive scenario explorer for pathway bottlenecks, delays, leakage, cost burden, and VicaEmpa impact.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # -----------------------------
 # Load default files
