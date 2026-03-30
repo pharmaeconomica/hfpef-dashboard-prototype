@@ -23,7 +23,7 @@ def _make_bar_chart(df, x_col, y_col, title, y_label):
         return
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.bar(plot_df[x_col].astype(str), plot_df[y_col].astype(float))
+    ax.bar(plot_df[x_col].astype(str), plot_df[y_col].astype(float), color="#00E47C", edgecolor="#08312A")
     ax.set_title(title)
     ax.set_xlabel("")
     ax.set_ylabel(y_label)
@@ -34,7 +34,7 @@ def _make_bar_chart(df, x_col, y_col, title, y_label):
 
 def _make_comparison_chart(current_value, vica_value, title, y_label):
     fig, ax = plt.subplots(figsize=(6, 4))
-    ax.bar(["Current", "VicaEmpa"], [float(current_value), float(vica_value)])
+    ax.bar(["Current", "VicaEmpa"], [float(current_value), float(vica_value)], color=["#08312A", "#00E47C"], edgecolor="#08312A")
     ax.set_title(title)
     ax.set_ylabel(y_label)
     plt.tight_layout()
@@ -251,7 +251,9 @@ def render_detailed_analysis(
         fig, ax = plt.subplots(figsize=(10, 4))
         ax.bar(
             v12_segment_chart_df["transition_label"],
-            v12_segment_chart_df["annual_transition_rate"] * 100
+            v12_segment_chart_df["annual_transition_rate"] * 100,
+            color="#00E47C",
+            edgecolor="#08312A"
         )
         ax.set_ylabel("Annual transition rate (%)")
         ax.set_title("Illustrative segment evolution rates")

@@ -39,6 +39,88 @@ st.markdown(
 
 st.set_page_config(page_title="HFpEF Dashboard Prototype", layout="wide")
 
+# --- BI Green Theme ---
+BI_GREEN = "#00E47C"
+BI_DARK_GREEN = "#08312A"
+BI_LIGHT_GREEN = "#EAFBF3"
+
+st.markdown(
+    f"""
+    <style>
+    :root {{
+        --bi-green: {BI_GREEN};
+        --bi-dark-green: {BI_DARK_GREEN};
+        --bi-light-green: {BI_LIGHT_GREEN};
+    }}
+
+    .stApp {{
+        background-color: white;
+    }}
+
+    h1, h2, h3, h4, h5, h6 {{
+        color: {BI_DARK_GREEN} !important;
+    }}
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] h4,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] p {{
+        color: {BI_DARK_GREEN} !important;
+    }}
+
+    div[data-testid="stMetric"] {{
+        border: 1px solid #D7F5E6;
+        border-radius: 12px;
+        padding: 0.5rem 0.75rem;
+        background: #FCFFFD;
+    }}
+
+    div[data-testid="stMetricLabel"] {{
+        color: {BI_DARK_GREEN} !important;
+        font-weight: 600 !important;
+    }}
+
+    div[data-testid="stMetricValue"] {{
+        color: {BI_GREEN} !important;
+        font-weight: 700 !important;
+    }}
+
+    div[data-testid="stExpander"] details {{
+        border: 1px solid #D7F5E6 !important;
+        border-radius: 12px !important;
+        background: #FCFFFD !important;
+    }}
+
+    div[data-testid="stExpander"] summary {{
+        color: {BI_DARK_GREEN} !important;
+        font-weight: 600 !important;
+    }}
+
+    thead tr th {{
+        background-color: {BI_DARK_GREEN} !important;
+        color: white !important;
+    }}
+
+    tbody tr:nth-child(even) {{
+        background-color: #F7FFFB !important;
+    }}
+
+    .bi-theme-note {{
+        background: {BI_LIGHT_GREEN};
+        border-left: 5px solid {BI_GREEN};
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        color: {BI_DARK_GREEN};
+        margin-bottom: 1rem;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 
 
 # -----------------------------
@@ -415,6 +497,16 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.markdown(
+    """
+    <div class="bi-theme-note">
+        Prototype pathway simulation for proposal support — designed to highlight bottlenecks, delay, leakage, cost burden, and VicaEmpa impact.
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # -----------------------------
 # Load default files
 # -----------------------------
@@ -593,7 +685,10 @@ v11_current_results = run_transition_time_model_v11(
     time_risk_df=time_risk_df,
     total_population=population,
     selected_market=market,
-    scenario_name="Current"
+    scenario_name="Current",
+    delay_factor=delay_factor,
+    leakage_factor=leakage_factor,
+    cost_factor=cost_factor
 )
 
 v11_vica_results = run_transition_time_model_v11(
@@ -603,7 +698,10 @@ v11_vica_results = run_transition_time_model_v11(
     time_risk_df=time_risk_df,
     total_population=population,
     selected_market=market,
-    scenario_name="VicaEmpa"
+    scenario_name="VicaEmpa",
+    delay_factor=delay_factor,
+    leakage_factor=leakage_factor,
+    cost_factor=cost_factor
 )
 
 v11_active_results = v11_vica_results if show_vica else v11_current_results
@@ -625,6 +723,27 @@ active_cost = vica_cost if show_vica else base_cost
 active_lost = vica_lost if show_vica else base_lost
 active_remaining = vica_remaining if show_vica else base_remaining
 active_segment_summary = vica_segment_summary if show_vica else base_segment_summary
+
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Debug: active inputs**")
+st.sidebar.write({
+    "mode": mode if "mode" in globals() else "not set",
+    "population": population if "population" in globals() else "not set",
+    "delay_factor": delay_factor if "delay_factor" in globals() else "not set",
+    "leakage_factor": leakage_factor if "leakage_factor" in globals() else "not set",
+    "cost_factor": cost_factor if "cost_factor" in globals() else "not set",
+    "show_vica": show_vica if "show_vica" in globals() else "not set",
+})
+
+st.sidebar.markdown("**Debug: totals**")
+st.sidebar.write({
+    "base_cost": base_cost if "base_cost" in globals() else "not set",
+    "vica_cost": vica_cost if "vica_cost" in globals() else "not set",
+    "base_lost": base_lost if "base_lost" in globals() else "not set",
+    "vica_lost": vica_lost if "vica_lost" in globals() else "not set",
+})
+
+
 
 savings = base_cost - vica_cost
 avoided_loss = base_lost - vica_lost
