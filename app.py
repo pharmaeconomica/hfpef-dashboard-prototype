@@ -389,7 +389,7 @@ def get_node_style(severity, node_id):
 # App header
 # -----------------------------
 st.title("HFpEF Care Pathway Simulation Dashboard")
-st.caption("Version 9: segmented patient populations")
+st.caption("Interactive HFpEF care pathway simulation")
 
 # -----------------------------
 # Load default files
