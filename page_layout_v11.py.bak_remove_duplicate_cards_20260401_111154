@@ -361,6 +361,10 @@ def render_executive_summary(
     st.subheader("Patient pathway bottlenecks")
     _make_sankey_from_client_view(client_view_df)
 
+    st.subheader("Pathway node cards")
+    _render_node_cards(client_view_df, currency=currency)
+
+    render_pathway_cards(client_view_df, currency=currency)
 
     st.subheader("Key visuals")
     c1, c2 = st.columns(2)

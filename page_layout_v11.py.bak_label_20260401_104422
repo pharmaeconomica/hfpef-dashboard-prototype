@@ -11,8 +11,6 @@ from ui_redesign_v11 import (
 )
 
 from segment_explanations import get_segment_explanation
-import textwrap
-
 from dynamic_segments_v12 import (
     summarize_segment_evolution,
     build_segment_transition_matrix,
@@ -52,10 +50,6 @@ def _pick_col(df, candidates):
         if key in lower_map:
             return lower_map[key]
     return None
-
-
-def _clean_html_block(html_text):
-    return "\n".join(line.lstrip() for line in textwrap.dedent(html_text).splitlines()).strip()
 
 
 def _make_sankey_from_client_view(client_view_df):
@@ -108,7 +102,7 @@ def _make_sankey_from_client_view(client_view_df):
     max_leakage = max(leakage_values) if any(leakage_values) else 1.0
     max_cost = max(cost_values) if any(cost_values) else 1.0
 
-    pathway_html = _clean_html_block("""
+    pathway_html = """
     <div style="margin-bottom:10px;">
         <div style="font-size:15px;font-weight:700;color:#08312A;margin-bottom:4px;">
             HFpEF DES-style pathway view
@@ -118,7 +112,7 @@ def _make_sankey_from_client_view(client_view_df):
         </div>
     </div>
     <div style="display:flex;gap:14px;align-items:stretch;overflow-x:auto;padding:8px 2px 14px 2px;">
-    """)
+    """
 
     for idx, row in plot_df.iterrows():
         node_id = str(row.get(node_id_col, "") or "")
@@ -161,7 +155,7 @@ def _make_sankey_from_client_view(client_view_df):
 
         subtitle = node_name if node_name and node_name != node_id else "Pathway node"
 
-        card_html = _clean_html_block(f"""
+        card_html = f"""
         <div style="
             min-width:240px;
             max-width:240px;
@@ -222,12 +216,12 @@ def _make_sankey_from_client_view(client_view_df):
                 </div>
             </div>
         </div>
-        """)
+        """
 
         pathway_html += card_html
 
         if idx < len(plot_df) - 1:
-            pathway_html += _clean_html_block("""
+            pathway_html += """
             <div style="
                 min-width:44px;
                 display:flex;
@@ -238,11 +232,11 @@ def _make_sankey_from_client_view(client_view_df):
                 font-weight:700;
                 padding-top:8px;
             ">→</div>
-            """)
+            """
 
     pathway_html += "</div>"
 
-    pathway_html += _clean_html_block("""
+    pathway_html += """
     <div style="
         margin-top:6px;
         border:1px solid #E5EFE9;
@@ -254,7 +248,7 @@ def _make_sankey_from_client_view(client_view_df):
     ">
         <b>How to read this:</b> a higher queue bar means more delay at that node. Red nodes indicate the strongest combined pressure from delay, leakage, and cost.
     </div>
-    """)
+    """
 
     st.markdown(pathway_html, unsafe_allow_html=True)
 
@@ -358,9 +352,13 @@ def render_executive_summary(
     render_top_kpis(client_view_df, currency=currency)
     render_story_summary(client_view_df, show_vica=show_vica)
 
-    st.subheader("Patient pathway bottlenecks")
+    st.subheader("Patient flow simulation")
     _make_sankey_from_client_view(client_view_df)
 
+    st.subheader("Pathway node cards")
+    _render_node_cards(client_view_df, currency=currency)
+
+    render_pathway_cards(client_view_df, currency=currency)
 
     st.subheader("Key visuals")
     c1, c2 = st.columns(2)

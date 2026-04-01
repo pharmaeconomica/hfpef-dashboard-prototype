@@ -11,8 +11,6 @@ from ui_redesign_v11 import (
 )
 
 from segment_explanations import get_segment_explanation
-import textwrap
-
 from dynamic_segments_v12 import (
     summarize_segment_evolution,
     build_segment_transition_matrix,
@@ -54,209 +52,85 @@ def _pick_col(df, candidates):
     return None
 
 
-def _clean_html_block(html_text):
-    return "\n".join(line.lstrip() for line in textwrap.dedent(html_text).splitlines()).strip()
-
-
 def _make_sankey_from_client_view(client_view_df):
     if client_view_df is None or client_view_df.empty:
-        st.info("No patient flow data available for the pathway view.")
+        st.info("No patient flow data available for the Sankey view.")
         return
 
     node_id_col = _pick_col(client_view_df, ["node_id", "Node ID", "node"])
     node_name_col = _pick_col(client_view_df, ["node_name", "Node", "node_label"])
     flow_col = _pick_col(client_view_df, ["patients_entering", "Patients Entering", "inflow_patients", "patient_volume", "surviving_patients"])
-    delay_col = _pick_col(client_view_df, ["cumulative_delay_days", "Delay (days)", "avg_delay_days", "delay_days"])
-    cost_col = _pick_col(client_view_df, ["total_cost", "Node Cost", "node_total_cost"])
-    leakage_col = _pick_col(client_view_df, ["Leakage %", "leakage_pct", "leakage_percent", "leakage_rate"])
-    hhf_col = _pick_col(client_view_df, ["excess_events_from_delay", "avoidable_hospitalizations", "expected_events"])
 
     if node_id_col is None:
-        st.info("No node identifier found for the pathway view.")
+        st.info("No node identifier found for the Sankey view.")
         return
 
     if flow_col is None:
-        st.info("No patient flow volume column found for the pathway view.")
+        st.info("No patient flow volume column found for the Sankey view.")
         return
 
     plot_df = client_view_df.copy().reset_index(drop=True)
-    if len(plot_df) < 1:
-        st.info("No pathway nodes are available for the pathway view.")
+    if len(plot_df) < 2:
+        st.info("At least two pathway nodes are required for the Sankey view.")
         return
 
-    def _to_float(value, default=0.0):
-        try:
-            if value is None or value == "":
-                return default
-            return float(value)
-        except Exception:
-            return default
-
-    delay_values = []
-    leakage_values = []
-    cost_values = []
-
+    labels = []
     for _, row in plot_df.iterrows():
-        delay_values.append(max(_to_float(row.get(delay_col, 0.0)) if delay_col else 0.0, 0.0))
-        leakage_raw = _to_float(row.get(leakage_col, 0.0)) if leakage_col else 0.0
-        if leakage_raw <= 1:
-            leakage_raw *= 100.0
-        leakage_values.append(max(leakage_raw, 0.0))
-        cost_values.append(max(_to_float(row.get(cost_col, 0.0)) if cost_col else 0.0, 0.0))
-
-    max_delay = max(delay_values) if any(delay_values) else 1.0
-    max_leakage = max(leakage_values) if any(leakage_values) else 1.0
-    max_cost = max(cost_values) if any(cost_values) else 1.0
-
-    pathway_html = _clean_html_block("""
-    <div style="margin-bottom:10px;">
-        <div style="font-size:15px;font-weight:700;color:#08312A;margin-bottom:4px;">
-            HFpEF DES-style pathway view
-        </div>
-        <div style="font-size:13px;color:#42635B;">
-            Each box shows the operational status of one pathway node. Darker queue bars and red highlights indicate stronger bottlenecks.
-        </div>
-    </div>
-    <div style="display:flex;gap:14px;align-items:stretch;overflow-x:auto;padding:8px 2px 14px 2px;">
-    """)
-
-    for idx, row in plot_df.iterrows():
-        node_id = str(row.get(node_id_col, "") or "")
-        node_name = str(row.get(node_name_col, "") or "") if node_name_col else ""
-        flow_val = _to_float(row.get(flow_col, 0.0))
-        delay_val = max(_to_float(row.get(delay_col, 0.0)) if delay_col else 0.0, 0.0)
-        cost_val = max(_to_float(row.get(cost_col, 0.0)) if cost_col else 0.0, 0.0)
-        hhf_val = max(_to_float(row.get(hhf_col, 0.0)) if hhf_col else 0.0, 0.0)
-        leakage_val = _to_float(row.get(leakage_col, 0.0)) if leakage_col else 0.0
-        if leakage_val <= 1:
-            leakage_val *= 100.0
-        leakage_val = max(leakage_val, 0.0)
-
-        delay_score = delay_val / max_delay if max_delay > 0 else 0.0
-        leakage_score = leakage_val / max_leakage if max_leakage > 0 else 0.0
-        cost_score = cost_val / max_cost if max_cost > 0 else 0.0
-
-        bottleneck_score = (0.50 * delay_score) + (0.30 * leakage_score) + (0.20 * cost_score)
-
-        if bottleneck_score >= 0.75:
-            border_color = "#C83C3C"
-            header_bg = "#FFF1F1"
-            badge_bg = "#C83C3C"
-            badge_text = "Key bottleneck"
-            queue_color = "#C83C3C"
-        elif bottleneck_score >= 0.45:
-            border_color = "#D98E04"
-            header_bg = "#FFF8E8"
-            badge_bg = "#D98E04"
-            badge_text = "Watchpoint"
-            queue_color = "#D98E04"
+        node_id = str(row.get(node_id_col, ""))
+        node_name = str(row.get(node_name_col, "")) if node_name_col else ""
+        if node_name and node_name != node_id:
+            labels.append(f"{node_id} — {node_name}")
         else:
-            border_color = "#BFE8D2"
-            header_bg = "#F6FFFA"
-            badge_bg = "#1F7A4D"
-            badge_text = "Stable flow"
-            queue_color = "#1F7A4D"
+            labels.append(node_id)
 
-        queue_pct = max(8.0, min(delay_score * 100.0, 100.0))
+    sources = list(range(len(plot_df) - 1))
+    targets = list(range(1, len(plot_df)))
 
-        subtitle = node_name if node_name and node_name != node_id else "Pathway node"
+    values = []
+    for i in range(len(plot_df) - 1):
+        raw = plot_df.iloc[i].get(flow_col, 0)
+        try:
+            values.append(max(float(raw), 0.0))
+        except Exception:
+            values.append(0.0)
 
-        card_html = _clean_html_block(f"""
-        <div style="
-            min-width:240px;
-            max-width:240px;
-            border:2px solid {border_color};
-            border-radius:18px;
-            background:white;
-            box-shadow:0 3px 10px rgba(0,0,0,0.06);
-            display:flex;
-            flex-direction:column;
-            justify-content:space-between;
-        ">
-            <div style="
-                padding:12px 14px 10px 14px;
-                border-top-left-radius:16px;
-                border-top-right-radius:16px;
-                background:{header_bg};
-                border-bottom:1px solid #E7F3EC;
-            ">
-                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
-                    <div>
-                        <div style="font-size:12px;font-weight:800;color:#08312A;">{node_id}</div>
-                        <div style="font-size:15px;font-weight:800;color:#08312A;line-height:1.2;margin-top:3px;">{subtitle}</div>
-                    </div>
-                    <div style="
-                        font-size:10px;
-                        font-weight:700;
-                        color:white;
-                        background:{badge_bg};
-                        padding:4px 8px;
-                        border-radius:999px;
-                        white-space:nowrap;
-                    ">{badge_text}</div>
-                </div>
-            </div>
+    if sum(values) <= 0:
+        st.info("Patient flow values are zero, so the Sankey chart cannot be displayed.")
+        return
 
-            <div style="padding:12px 14px 14px 14px;">
-                <div style="font-size:13px;color:#08312A;margin-bottom:6px;"><b>Patients:</b> {flow_val:,.0f}</div>
-                <div style="font-size:13px;color:#08312A;margin-bottom:6px;"><b>Delay:</b> {delay_val:,.1f} days</div>
-                <div style="font-size:13px;color:#08312A;margin-bottom:6px;"><b>Leakage:</b> {leakage_val:,.1f}%</div>
-                <div style="font-size:13px;color:#08312A;margin-bottom:6px;"><b>Cost:</b> {cost_val:,.0f}</div>
-                <div style="font-size:13px;color:#08312A;margin-bottom:10px;"><b>Avoidable HHF:</b> {hhf_val:,.1f}</div>
+    fig = go.Figure(
+        data=[
+            go.Sankey(
+                arrangement="snap",
+                node=dict(
+                    pad=18,
+                    thickness=22,
+                    line=dict(color="#08312A", width=1),
+                    label=labels,
+                    color=["#00E47C"] * len(labels),
+                    hovertemplate="%{label}<extra></extra>",
+                ),
+                link=dict(
+                    source=sources,
+                    target=targets,
+                    value=values,
+                    color="rgba(8,49,42,0.22)",
+                    hovertemplate="Patients flowing forward: %{value:,.0f}<extra></extra>",
+                ),
+            )
+        ]
+    )
 
-                <div style="font-size:11px;color:#42635B;font-weight:700;margin-bottom:5px;">Queue pressure</div>
-                <div style="
-                    width:100%;
-                    height:10px;
-                    background:#EAF4EE;
-                    border-radius:999px;
-                    overflow:hidden;
-                    border:1px solid #D7EBDD;
-                ">
-                    <div style="
-                        width:{queue_pct:.1f}%;
-                        height:100%;
-                        background:{queue_color};
-                        border-radius:999px;
-                    "></div>
-                </div>
-            </div>
-        </div>
-        """)
+    fig.update_layout(
+        title="HFpEF patient flow across the pathway",
+        font=dict(size=12, color="#08312A"),
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        margin=dict(l=10, r=10, t=45, b=10),
+        height=430,
+    )
 
-        pathway_html += card_html
-
-        if idx < len(plot_df) - 1:
-            pathway_html += _clean_html_block("""
-            <div style="
-                min-width:44px;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                color:#42635B;
-                font-size:28px;
-                font-weight:700;
-                padding-top:8px;
-            ">→</div>
-            """)
-
-    pathway_html += "</div>"
-
-    pathway_html += _clean_html_block("""
-    <div style="
-        margin-top:6px;
-        border:1px solid #E5EFE9;
-        border-radius:14px;
-        background:#FBFDFC;
-        padding:10px 12px;
-        font-size:12px;
-        color:#42635B;
-    ">
-        <b>How to read this:</b> a higher queue bar means more delay at that node. Red nodes indicate the strongest combined pressure from delay, leakage, and cost.
-    </div>
-    """)
-
-    st.markdown(pathway_html, unsafe_allow_html=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def _render_node_cards(client_view_df, currency):
@@ -358,9 +232,13 @@ def render_executive_summary(
     render_top_kpis(client_view_df, currency=currency)
     render_story_summary(client_view_df, show_vica=show_vica)
 
-    st.subheader("Patient pathway bottlenecks")
+    st.subheader("Patient flow simulation")
     _make_sankey_from_client_view(client_view_df)
 
+    st.subheader("Pathway node cards")
+    _render_node_cards(client_view_df, currency=currency)
+
+    render_pathway_cards(client_view_df, currency=currency)
 
     st.subheader("Key visuals")
     c1, c2 = st.columns(2)

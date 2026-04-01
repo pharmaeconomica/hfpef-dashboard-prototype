@@ -724,27 +724,24 @@ active_lost = vica_lost if show_vica else base_lost
 active_remaining = vica_remaining if show_vica else base_remaining
 active_segment_summary = vica_segment_summary if show_vica else base_segment_summary
 
-show_debug_sidebar = st.sidebar.toggle("Show developer debug panel", value=False)
+st.sidebar.markdown("---")
+st.sidebar.markdown("**Debug: active inputs**")
+st.sidebar.write({
+    "mode": mode if "mode" in globals() else "not set",
+    "population": population if "population" in globals() else "not set",
+    "delay_factor": delay_factor if "delay_factor" in globals() else "not set",
+    "leakage_factor": leakage_factor if "leakage_factor" in globals() else "not set",
+    "cost_factor": cost_factor if "cost_factor" in globals() else "not set",
+    "show_vica": show_vica if "show_vica" in globals() else "not set",
+})
 
-if show_debug_sidebar:
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("**Debug: active inputs**")
-    st.sidebar.write({
-        "mode": mode if "mode" in globals() else "not set",
-        "population": population if "population" in globals() else "not set",
-        "delay_factor": delay_factor if "delay_factor" in globals() else "not set",
-        "leakage_factor": leakage_factor if "leakage_factor" in globals() else "not set",
-        "cost_factor": cost_factor if "cost_factor" in globals() else "not set",
-        "show_vica": show_vica if "show_vica" in globals() else "not set",
-    })
-
-    st.sidebar.markdown("**Debug: totals**")
-    st.sidebar.write({
-        "base_cost": base_cost if "base_cost" in globals() else "not set",
-        "vica_cost": vica_cost if "vica_cost" in globals() else "not set",
-        "base_lost": base_lost if "base_lost" in globals() else "not set",
-        "vica_lost": vica_lost if "vica_lost" in globals() else "not set",
-    })
+st.sidebar.markdown("**Debug: totals**")
+st.sidebar.write({
+    "base_cost": base_cost if "base_cost" in globals() else "not set",
+    "vica_cost": vica_cost if "vica_cost" in globals() else "not set",
+    "base_lost": base_lost if "base_lost" in globals() else "not set",
+    "vica_lost": vica_lost if "vica_lost" in globals() else "not set",
+})
 
 
 
